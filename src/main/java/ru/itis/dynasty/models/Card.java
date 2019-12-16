@@ -8,6 +8,17 @@ public class Card {
     private int idSpecialAbility;
     private int inGameCount;
 
+    public Card() {
+    }
+
+    public Card(String name, int power, int protection, int idSpecialAbility) {
+        this.name = name;
+        this.power = power;
+        this.protection = protection;
+        this.idSpecialAbility = idSpecialAbility;
+    }
+
+
     public int getId() {
         return id;
     }
@@ -16,13 +27,7 @@ public class Card {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public int getPower() {
         return power;

@@ -2,9 +2,8 @@ package ru.itis.dynasty.models;
 
 import java.util.ArrayList;
 
-public class User {
+public class User extends Entity {
     private int id;
-    private String name;
     private String password;
     private ArrayList<Card> cards;
 
@@ -20,14 +19,14 @@ public class User {
     }
 
     public User(String name, String password) {
-        this.name = name;
+        super(name);
         this.password = password;
     }
 
-    public User(String name, ArrayList<Card> cards) {
-        this.name = name;
-        this.cards = cards;
-    }
+//   public User(String name, ArrayList<Card> cards) {
+//        super(name);
+//        this.cards = cards;
+//    }
 
     public int getId() {
         return id;
@@ -38,11 +37,11 @@ public class User {
     }
 
     public String getName() {
-        return name;
+        return super.getName();
     }
 
     public void setName(String name) {
-        this.name = name;
+        super.setName(name);
     }
 
     public String getPassword() {

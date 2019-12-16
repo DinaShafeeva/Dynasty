@@ -1,12 +1,22 @@
 package ru.itis.dynasty.ai;
 
 import ru.itis.dynasty.models.Card;
+import ru.itis.dynasty.models.User;
 
 import java.util.ArrayList;
 
-public class Bot {
+public class BotLogic {
     private ArrayList<Card> myCards;
     private int life = 3;
+    private boolean status;
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
 
     public int getLife() {
         return life;
@@ -16,7 +26,7 @@ public class Bot {
         this.life = life;
     }
 
-    public Bot(ArrayList<Card> myCards) {
+    public BotLogic(ArrayList<Card> myCards) {
         this.myCards = myCards;
     }
 

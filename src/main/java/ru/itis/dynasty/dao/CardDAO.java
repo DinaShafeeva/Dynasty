@@ -16,11 +16,12 @@ public class CardDAO {
         PreparedStatement statement;
         connection = DataBase.getInstance().getConnection();
         try {
-            statement = connection.prepareStatement("INSERT INTO dynasty.card (name, power, protection)" +
-                    "VALUES (?, ?, ?)");
+            statement = connection.prepareStatement("INSERT INTO dynasty.card (name, power, protection, id_special_ability)" +
+                    "VALUES (?, ?, ?, ?)");
             statement.setString(1, card.getName());
             statement.setInt(2, card.getPower());
             statement.setInt(3, card.getProtection());
+            statement.setInt(4, card.getIdSpecialAbility());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException(e);

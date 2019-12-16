@@ -48,10 +48,17 @@ public class UserBL {
         }
     }
 
-    public boolean register(String name, String password, String repeatPassword) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    public boolean register(String name, String password, String repeatPassword) {
         if (checkPassword(password, repeatPassword)){
             if (!userDAO.isExist(name)) {
-                User user = new User(name, getHash(password));
+                User user = null;
+                try {
+                    user = new User(name, getHash(password));
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
                 User createdUser = userDAO.create(user);
                 if (createdUser != null) {
                     UserStat userStat = new UserStat();
@@ -71,8 +78,14 @@ public class UserBL {
         }
     }
 
-    public User login(String name, String password) throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        return userDAO.isExist(name, getHash(password)) ;
+    public User login(String name, String password) {
+        try {
+            return userDAO.isExist(name, getHash(password)) ;
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("No such algorithm");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("No such encoding");
+        }
     }
 
 
