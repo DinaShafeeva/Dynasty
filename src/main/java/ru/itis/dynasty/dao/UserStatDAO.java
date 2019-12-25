@@ -15,10 +15,11 @@ public class UserStatDAO {
         PreparedStatement statement;
         connection = DataBase.getInstance().getConnection();
         try {
-            statement = connection.prepareStatement("INSERT INTO dynasty.user_stat (win_count,defeat_count)" +
-                    "VALUES (?, ?)");
-            statement.setInt(1, us.getWinCount());
-            statement.setInt(2, us.getDefeatCount());
+            statement = connection.prepareStatement("INSERT INTO dynasty.user_stat (id_user, win_count,defeat_count)" +
+                    "VALUES (?, ?, ?)");
+            statement.setInt(1, us.getIdUser());
+            statement.setInt(2, us.getWinCount());
+            statement.setInt(3, us.getDefeatCount());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException(e);
