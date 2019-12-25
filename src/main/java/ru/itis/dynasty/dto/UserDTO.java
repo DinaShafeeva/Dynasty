@@ -1,4 +1,4 @@
-package ru.itis.dynasty.DTO;
+package ru.itis.dynasty.dto;
 
 public class UserDTO {
     private String name;
@@ -14,7 +14,7 @@ public class UserDTO {
     public static class Builder {
         private String name;
 
-        private Builder() {
+        public Builder() {
         }
 
         public Builder setName(String name) {

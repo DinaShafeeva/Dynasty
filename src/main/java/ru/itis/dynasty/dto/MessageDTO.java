@@ -1,4 +1,4 @@
-package ru.itis.dynasty.DTO;
+package ru.itis.dynasty.dto;
 
 public class MessageDTO {
     private String textMessage;

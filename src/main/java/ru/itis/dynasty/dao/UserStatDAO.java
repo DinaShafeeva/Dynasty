@@ -43,4 +43,22 @@ public class UserStatDAO {
             throw new IllegalArgumentException(e);
         }
     }
+    public UserStat findByName(String name){
+        PreparedStatement statement;
+        connection = DataBase.getInstance().getConnection();
+        try {
+            statement = connection.prepareStatement("SELECT * FROM dynasty.user_stat WHERE name = ?");
+            statement.setString(1, name);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                UserStat us = new UserStat();
+                us.setWinCount(resultSet.getInt("win_count"));
+                us.setDefeatCount(resultSet.getInt("defeat_count"));
+                return us;
+            } else return null;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException(e);
+        }
+    }
 }

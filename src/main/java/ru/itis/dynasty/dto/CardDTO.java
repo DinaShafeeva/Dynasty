@@ -1,4 +1,4 @@
-package ru.itis.dynasty.DTO;
+package ru.itis.dynasty.dto;
 
 public class CardDTO {
     private String name;
@@ -29,7 +29,7 @@ public class CardDTO {
         private int power;
         private int protection;
 
-        private Builder() {
+        public Builder() {
         }
 
         public Builder setName(String name) {

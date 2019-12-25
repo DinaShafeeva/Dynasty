@@ -6,6 +6,15 @@ public class UserStat {
     private int winCount;
     private int defeatCount;
 
+    public UserStat() {
+    }
+
+    public UserStat(int idUser, int winCount, int defeatCount) {
+        this.idUser = idUser;
+        this.winCount = winCount;
+        this.defeatCount = defeatCount;
+    }
+
     public int getIdUser() {
         return idUser;
     }
