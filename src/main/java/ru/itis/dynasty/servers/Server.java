@@ -1,15 +1,18 @@
 package ru.itis.dynasty.servers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import ru.itis.dynasty.dao.CardDAO;
+import ru.itis.dynasty.dto.CardDTO;
+import ru.itis.dynasty.dto.MessageDTO;
+import ru.itis.dynasty.dto.UserStatDTO;
 import ru.itis.dynasty.Protocol.Commands;
+import ru.itis.dynasty.Protocol.CommandsFromServer;
 import ru.itis.dynasty.Protocol.Request;
 import ru.itis.dynasty.Protocol.Response;
 import ru.itis.dynasty.bl.ChatBL;
-import ru.itis.dynasty.bl.GameLogic;
-import ru.itis.dynasty.bl.RoomBL;
 import ru.itis.dynasty.bl.UserBL;
-import ru.itis.dynasty.dao.CardDAO;
-import ru.itis.dynasty.models.Card;
+import ru.itis.dynasty.dao.UserStatDAO;
+import ru.itis.dynasty.room.Room;
 import ru.itis.dynasty.models.User;
 
 import java.io.BufferedReader;
@@ -78,56 +81,9 @@ public class Server {
             System.out.println("New Client");
         }
 
-//        private String game(){
-//            boolean isFinished = false;
-//            GameLogic gameLogic = new GameLogic();
-//            CardDAO card = new CardDAO();
-//            ArrayList<Card> botList = null;
-//            ArrayList<Card> userList = null;
-//            int userLife = 3;
-//            int botLife = 3;
-//            BotLogic bot = new BotLogic(botList);
-//            User user = new User(userList);
-//            boolean userStatus = true;
-//            //статус нападающего
-//
-//            while ((userLife>0) && (botLife>0)) {
-//                ArrayList<Card> attackedCards = null;
-//                ArrayList<Card> protectedCards = null;
-//
-//                Random random = new Random();
-//                for (int i=0; i<5;i++){
-//                    if (botList.get(i) == null) botList.add(card.findByID( random.nextInt(15)));
-//                    if (userList.get(i) == null) userList.add(card.findByID( random.nextInt(15)));
-//                }
-//
-//
-//                    //ход атаки
-//               //     attackedCards.add(card1);
-//                    gameLogic.currentSituation(attackedCards, protectedCards);
-//                    //засетить в текст
-//
-//                    //ход защиты
-//                    if (isFinished) break;
-//                    //protectedCards.add(card2);
-//                    gameLogic.currentSituation(attackedCards, protectedCards);
-//                    //засетить в текст
-//
-//                if (gameLogic.currentSituation(attackedCards, protectedCards) > 0) {
-//                    if (userStatus) {
-//                        botLife--;
-//                    }else userLife--;
-//                }
-//                userStatus = false;
-//            }
-//            if (userLife==0){
-//                //связать юзер и юзерСтат и изменить статистику
-//                return "You lose";
-//            } else return "You won";
-//        }
-
         @Override
         public void run() {
+            Room room = null;
             while (true) {
                 try {
                     Request request = null;
@@ -136,57 +92,79 @@ public class Server {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    Response response;
+                    Response response = null;
                     UserBL userBL = new UserBL();
+                    User user = null;
+
                     String command = request.getHeader();
+
                     if (command.equals(Commands.LOG_IN.name())){
-                        response = Response.build(userBL.login(request.getParameter("login"), request.getParameter("password")));
-                    } else if (command.equals(Commands.REGISTER.name())) {
-                        if (userBL.register(request.getParameter("login"), request.getParameter("password"), request.getParameter("repeatPassword"))) {
-                            response = Response.build("successful");
-                        } else response = Response.build("unsuccessful");
-                    } else if (command.equals(Commands.SEND_MESSAGE.name())){
-                        ChatBL chatBL = new ChatBL(request.getParameter("name"), request.getParameter("textMessage"));
-                        response = Response.build()
+                        userBL.login(request.getParameter("login"), request.getParameter("password"));
+                        System.out.println(request.getParameter("login") + " " + request.getParameter("password"));
+                        user = new User(request.getParameter("login"), request.getParameter("password"));
+                        response = Response.build(new MessageDTO.Builder().setTextMessage(user.getName()).build());//user.getName()).build());
+                        response.setHeaderName(CommandsFromServer.LOG_IN.name());
                     }
+                    else if (command.equals(Commands.REGISTER.name())) {
+                        user = new User();
+                        if (userBL.register(request.getParameter("login"), request.getParameter("password"), request.getParameter("repeatPassword"))) {
+                            response = Response.build(new MessageDTO.Builder().setTextMessage("successful").build());
+                        } else response = Response.build(new MessageDTO.Builder().setTextMessage("unsuccessful").build());
+                        response.setHeaderName(CommandsFromServer.REGISTER.name());
+                    }
+                    else if (command.equals(Commands.SEND_MESSAGE.name())){
+                        ChatBL chatBL = new ChatBL(request.getParameter("name"), request.getParameter("textMessage"));
+                        chatBL.sendMessage(request.getParameter("name"), request.getParameter("textMessage"));
+                        response = Response.build(new MessageDTO.Builder().setTextMessage("textMessage").build());
+                        response.setHeaderName(CommandsFromServer.GET_MESSAGE.name());
+                    }
+                    else if (command.equals(Commands.START_GAME.name())){
+                        room = new Room(request.getParameter("user"));
+                        room.start();
+                        //комната роботой
+                        response = Response.build(new MessageDTO.Builder().setTextMessage("Game started").build());
+                        response.setHeaderName(CommandsFromServer.GET_MESSAGE.name());
+                    }
+                    else if (command.equals(Commands.SEND_CARD.name())){
+                        CardDAO cardDAO = new CardDAO();
+                        room.addCard(request.getParameter("card"));
+                        response = Response.build(new CardDTO.Builder()
+                                .setName(request.getParameter("name"))
+                                .setPower(cardDAO.findByName(request.getParameter("name")).getPower())
+                        .setProtection(cardDAO.findByName(request.getParameter("name")).getProtection())
+                        .build());
+                        response.setHeaderName(CommandsFromServer.BOTS_CARD.name());
+                        writer.println(objectMapper.writeValueAsString(response));
+                        response = Response.build(new MessageDTO.Builder().setTextMessage(String.valueOf(room.currentSit())).build());
+                        response.setHeaderName(CommandsFromServer.CUR_SITUATION.name());
+                    }
+                    else if (command.equals(Commands.ABORT_GAME.name())){
+                        room.interrupt();
+                        response = Response.build(new MessageDTO.Builder().setTextMessage("Game over").build());
+                        response.setHeaderName(CommandsFromServer.GET_MESSAGE.name());
+                        response.setHeaderName(CommandsFromServer.GET_MESSAGE.name());
+                    }
+                    else if (command.equals(Commands.PROFILE.name())){
+                        UserStatDAO userStatDAO = new UserStatDAO();
+                        response = Response.build(
+                                new UserStatDTO.Builder().setName(user.getName())
+                                        .setVictories(userStatDAO.findByName(user.getName())
+                                                .getWinCount()).setDefeats(userStatDAO.findByName(user.getName()).getDefeatCount())
+                                        .build());
+                        response.setHeaderName(CommandsFromServer.PROFILE.name());
+                    }
+                    writer.println(objectMapper.writeValueAsString(response));
+                    System.out.println(objectMapper.writeValueAsString("Server: " + response));
 
 
 
-
-
-
-
-                    GameLogic gameLogic = new GameLogic();
-                    CardDAO cardDAO = new CardDAO();
-                    ArrayList<Card> botList = null;
-                    ArrayList<Card> userList = null;
-                    int userLife = 3;
-                    int botLife = 3;
 
                     //это от чатика
                     String message = reader.readLine();
-                    //сюда писать все
-                    //обработка команд с клиента
-
-//пока игра не бетте, получи от клиента карты, запусти метод игры
-
-
-//                    while ((userLife>0) && (botLife>0)) {
-//                        for (int i=0; i<5;i++){
-//                            if (botList.get(i) == null) botList.add(cardDAO.findByID( random.nextInt(15)));
-//                            if (userList.get(i) == null) userList.add(cardDAO.findByID( random.nextInt(15)));
-//                        }
-//                        //получение карты нападающего - ниже строчку стереть
-//                        Card card = new Card();
-//                        gameLogic.game(card);
+                      //это чатик
+//                    for (ClientHandler client : clients) {
+//                        client.writer.println(message);
 //                    }
-                    //Запрос с кнопки начать, оздаю юзера по имени
-                    User user = new User();
-                  //  RoomBL room = new RoomBL(user);
-                    //это чатик
-                    for (ClientHandler client : clients) {
-                        client.writer.println(message);
-                    }
                 } catch (IOException e) {
                     throw new IllegalStateException(e);
                 }

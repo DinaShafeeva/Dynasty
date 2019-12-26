@@ -1,5 +1,7 @@
 package ru.itis.dynasty.bl;
 
+import ru.itis.dynasty.dto.MessageDTO;
+import ru.itis.dynasty.Protocol.Response;
 import ru.itis.dynasty.models.User;
 import ru.itis.dynasty.servers.Server;
 
@@ -32,5 +34,6 @@ public class ChatBL {
         for (Server.ClientHandler client : Server.getClients()) {
             client.getWriter().println(textMessage);
         }
+        Response response = Response.build(new MessageDTO.Builder().setTextMessage(textMessage).build());
     }
 }

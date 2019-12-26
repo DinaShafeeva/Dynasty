@@ -1,10 +1,12 @@
-package ru.itis.dynasty.models;
+package ru.itis.dynasty.room;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.itis.dynasty.Protocol.Request;
 import ru.itis.dynasty.ai.BotLogic;
 import ru.itis.dynasty.bl.GameLogic;
 import ru.itis.dynasty.dao.CardDAO;
+import ru.itis.dynasty.models.Card;
+import ru.itis.dynasty.models.User;
 import ru.itis.dynasty.servers.Server;
 
 import java.util.ArrayList;

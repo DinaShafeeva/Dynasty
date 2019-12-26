@@ -54,6 +54,7 @@ public class UserBL {
                 User user = null;
                 try {
                     user = new User(name, getHash(password));
+
                 } catch (NoSuchAlgorithmException e) {
                     e.printStackTrace();
                 } catch (UnsupportedEncodingException e) {
@@ -61,7 +62,7 @@ public class UserBL {
                 }
                 User createdUser = userDAO.create(user);
                 if (createdUser != null) {
-                    UserStat userStat = new UserStat();
+                    UserStat userStat = new UserStat(user.getId(),0,0);
                     userStat.setIdUser(createdUser.getId());
                     userStatDAO.create(userStat);
                     //при нажатии на кнопку регистрации отправляет на страницу авторизации
